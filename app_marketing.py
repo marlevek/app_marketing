@@ -46,32 +46,44 @@ hashtags = st.checkbox("Retornar Hashtags")
 keywords = st.text_area("Palavras-chave (SEO):", placeholder="Ex: bem-estar, medicina preventiva...")
 
 if st.button("Gerar conteúdo"):
-  prompt = f"""
-  Escreva um texto com SEO otimizado sobre o tema '{topic}'.
-  Retorne em sua resposta apenas o texto final e não inclua ela dentro de aspas.
-  - Onde será publicado: {platform}.
-  - Tom: {tone}.
-  - Público-alvo: {audience}.
-  - Comprimento: {length}.
-  - {"Inclua uma chamada para ação clara." if cta else "Não inclua chamada para ação"}
-  - {"Retorne ao final do texto hashtags relevantes." if hashtags else "Não inclua hashtags."}
-  {"- Palavras-chave que devem estar presentes nesse texto (para SEO): " + keywords if keywords else ""}
-  """
-  try:
-      res = llm_generate(llm, prompt)
-      st.session_state.historico.append({
-          'tema': topic,
-          'plataforma': platform,
-          'tom': tone,
-          'público': audience,
-          'tamanho': length,
-          'texto': res,
-          
-      })
-      
-      st.markdown(res)
-  except Exception as e:
-      st.error(f"Erro: {e}")
+    prompt = f"""
+    Escreva um texto com SEO otimizado sobre o tema '{topic}'.
+    Retorne em sua resposta apenas o texto final e não inclua ela dentro de aspas.
+    - Onde será publicado: {platform}.
+    - Tom: {tone}.
+    - Público-alvo: {audience}.
+    - Comprimento: {length}.
+    - {"Inclua uma chamada para ação clara." if cta else "Não inclua chamada para ação"}
+    - {"Retorne ao final do texto hashtags relevantes." if hashtags else "Não inclua hashtags."}
+    {"- Palavras-chave que devem estar presentes nesse texto (para SEO): " + keywords if keywords else ""}
+    """
+    try:
+        res = llm_generate(llm, prompt)
+
+        # Exibe o texto em um campo copiável
+        st.success("✅ Conteúdo gerado com sucesso!")
+        st.text_area("📝 Conteúdo gerado:", value=res, height=300, key="conteudo_gerado")
+
+        # (Opcional) Botão "copiar para área de transferência" usando o extra
+        try:
+            from streamlit_extras.st_copy_to_clipboard import st_copy_to_clipboard
+            st_copy_to_clipboard(res, "📋 Copiar texto gerado")
+        except ImportError:
+            st.info("💡 Dica: instale `streamlit-extras` para ativar o botão copiar automaticamente.")
+
+        # Adiciona ao histórico
+        st.session_state.historico.append({
+            "tema": topic,
+            "plataforma": platform,
+            "tom": tone,
+            "público": audience,
+            "tamanho": length,
+            "texto": res,
+        })
+
+    except Exception as e:
+        st.error(f"Erro: {e}")
+
 
 st.markdown("---")
 st.subheader("📚 Histórico de conteúdos gerados")
